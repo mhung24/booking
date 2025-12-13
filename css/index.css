@@ -1,0 +1,22 @@
+.hero-section {
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url("placeholder_banner.jpg") no-repeat center center;
+  background-size: cover;
+  color: white;
+  padding: 100px 0;
+}
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex-grow: 1;
+  min-height: 516px;
+}
