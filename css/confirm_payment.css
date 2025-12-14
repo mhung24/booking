@@ -1,0 +1,53 @@
+body {
+  background-color: #f4f6f9;
+}
+
+.confirmation-card {
+  max-width: 700px;
+  margin: 50px auto;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.card-header-custom {
+  background: linear-gradient(135deg, #198754, #146c43);
+  color: white;
+  padding: 25px;
+  text-align: center;
+}
+
+.info-row {
+  border-bottom: 1px dashed #dee2e6;
+  padding: 12px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.info-value {
+  font-weight: 700;
+  color: #212529;
+}
+
+.total-section {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+.total-price {
+  color: #dc3545;
+  font-size: 1.5rem;
+  font-weight: 800;
+}

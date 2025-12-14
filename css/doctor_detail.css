@@ -1,0 +1,58 @@
+.doctor-header {
+  background-color: #f7f9fc;
+  padding: 40px 0;
+  border-bottom: 3px solid #007bff;
+}
+
+.doctor-avatar-lg {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border: 5px solid white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.text-primary {
+  color: #007bff !important;
+}
+
+.text-success {
+  color: #198754 !important;
+}
+
+.nav-link.active {
+  font-weight: bold;
+  border-bottom: 3px solid #007bff;
+  color: #007bff !important;
+}
+
+.review-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.booking-btn-cta {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 8px;
+}
+
+.booking-btn-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(25, 135, 84, 0.4);
+}
+
+.rating-stars label {
+  font-size: 24px;
+  color: #ddd;
+  cursor: pointer;
+}
+
+.rating-stars input:checked ~ label,
+.rating-stars label:hover,
+.rating-stars label:hover ~ label {
+  color: #ffc107;
+}
+
+.rating-stars input {
+  display: none;
+}

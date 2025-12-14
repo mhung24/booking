@@ -5,92 +5,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 // =========================================
 
-require_once 'config/connect.php';
-if (session_status() === PHP_SESSION_NONE)
-    session_start();
-
-$error_message = '';
-$success_message = '';
-
-$patient_id = $_SESSION['user_id'] ?? null;
-$doctor_id = (int) ($_GET['id'] ?? 0);
-
-if (!$patient_id) {
-    header('Location: login.php');
-    exit;
-}
-
-$available_time_slots = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
-
-global $pdo;
-
-// ===== DOCTOR =====
-$stmt = $pdo->prepare("SELECT D.full_name AS doctor_name, D.profile_picture, T.department_name
-                         FROM Doctors D JOIN Departments T ON D.department_id = T.department_id
-                         WHERE D.doctor_id = :id");
-$stmt->execute(['id' => $doctor_id]);
-$doctor = $stmt->fetch();
-if (!$doctor) {
-    header('Location: tim-bac-si.php');
-    exit;
-}
-
-// ===== PATIENT =====
-$stmt = $pdo->prepare("SELECT full_name, phone_number, date_of_birth, gender FROM Patients WHERE patient_id = :id");
-$stmt->execute(['id' => $patient_id]);
-$patient = $stmt->fetch(PDO::FETCH_ASSOC);
-
-$patient_name = htmlspecialchars($patient['full_name'] ?? '');
-$patient_phone = htmlspecialchars($patient['phone_number'] ?? '');
-$patient_dob = htmlspecialchars($patient['date_of_birth'] ?? 'Chưa cập nhật');
-
-$gender_display = match ($patient['gender'] ?? '') {
-    'Male' => 'Nam',
-    'Female' => 'Nữ',
-    'Other' => 'Khác',
-    default => 'Chưa cập nhật'
-};
-
-// ===== SUBMIT =====
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_appointment'])) {
-
-    $appointment_date = $_POST['ngay_kham'] ?? '';
-    $appointment_time = $_POST['gio_kham_slot'] ?? '';
-    $reason = trim($_POST['ly_do'] ?? '');
-
-    if (!$appointment_date || !$appointment_time || !$reason) {
-        $error_message = 'Vui lòng điền đầy đủ thông tin.';
-    }
-
-    if (preg_match('/^\d{2}:\d{2}$/', $appointment_time)) {
-        $appointment_time .= ':00';
-    }
-
-    if (!DateTime::createFromFormat('Y-m-d', $appointment_date)) {
-        $error_message = 'Ngày khám không hợp lệ.';
-    }
-
-    if (!$error_message) {
-        try {
-            $stmt = $pdo->prepare("INSERT INTO Appointments
-                (patient_id, doctor_id, appointment_date, appointment_time, reason_for_visit, status, created_at)
-                VALUES (:p, :d, :ad, :at, :r, 'Pending', NOW())");
-
-            $stmt->execute([
-                'p' => $patient_id,
-                'd' => $doctor_id,
-                'ad' => $appointment_date,
-                'at' => $appointment_time,
-                'r' => $reason
-            ]);
-
-            $success_message = 'success';
-
-        } catch (PDOException $e) {
-            $error_message = $e->getMessage();
-        }
-    }
-}
+require_once 'includes/logic_booking.php';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -100,105 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_appointment'])
     <title>Đặt lịch khám</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #007bff;
-            --secondary-color: #198754;
-            --bg-light: #f4f6f9;
-            --text-dark: #343a40;
-        }
-
-        body {
-            background: var(--bg-light);
-            color: var(--text-dark);
-        }
-
-        .booking-container {
-            max-width: 950px;
-            margin: 40px auto;
-            border-radius: 15px;
-            /* Giảm độ cong */
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            /* Shadow hiện đại */
-        }
-
-        .doctor-info-panel {
-            background: linear-gradient(135deg, var(--primary-color), #0056b3);
-            color: #fff;
-            padding: 40px 30px;
-            text-align: center;
-        }
-
-        .doctor-avatar {
-            width: 100px;
-            /* Nhỏ hơn một chút */
-            height: 100px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 4px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .form-section {
-            padding: 40px;
-            background: #fff
-        }
-
-        .form-group-title {
-            font-size: 1.4rem;
-            /* Nhỏ hơn một chút */
-            font-weight: 700;
-            color: var(--secondary-color);
-            border-bottom: 2px solid var(--secondary-color);
-            /* Mỏng hơn */
-            padding-bottom: 5px;
-            margin-bottom: 25px;
-        }
-
-        .time-slot-btn {
-            margin: 4px;
-            padding: 10px 18px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            background-color: #f0f0f0;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .time-slot-btn:hover {
-            background-color: #e9ecef;
-        }
-
-        .time-slot-btn.selected {
-            background: var(--secondary-color);
-            color: #fff;
-            border-color: var(--secondary-color);
-            box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
-        }
-
-        .form-control:disabled {
-            background-color: #e9ecef;
-        }
-
-        .modal-success-icon {
-            font-size: 50px;
-            color: var(--secondary-color);
-            margin-bottom: 15px;
-        }
-
-        .btn-submit {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            transition: all 0.2s;
-        }
-
-        .btn-submit:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-    </style>
+    <link href="css/booking.css" rel="stylesheet">
 </head>
 
 <body>
@@ -277,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_appointment'])
             const err = document.getElementById('time-slot-error');
             btns.forEach(b => b.onclick = () => { btns.forEach(x => x.classList.remove('selected')); b.classList.add('selected'); slot.value = b.dataset.time; err.style.display = 'none'; });
             document.getElementById('appointment-form').onsubmit = e => { if (!slot.value) { e.preventDefault(); err.style.display = 'block'; } };
-<?php if ($success_message): ?>new bootstrap.Modal(document.getElementById('successModal')).show(); <?php endif; ?>
+            <?php if ($success_message): ?>new bootstrap.Modal(document.getElementById('successModal')).show(); <?php endif; ?>
         });
     </script>
 

@@ -1,135 +1,90 @@
-<?php
-// ================= DEBUG =================
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-// =========================================
-
-require_once 'config/connect.php';
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// --- ⚠️ BẢO VỆ TRANG CHỈ DÀNH CHO ADMIN VÀ HR_ADMIN ---
-$allowed_roles = ['Super', 'HR_Admin'];
-
-if (!isset($_SESSION['user_role']) || !in_array($_SESSION['user_role'], $allowed_roles)) {
-    // Chuyển hướng người không có quyền về trang đăng nhập hoặc trang lỗi
-    header('Location: login.php');
-    exit;
-}
-
-$admin_name = $_SESSION['admin_name'] ?? 'Quản lý';
-$admin_role = $_SESSION['user_role'] ?? 'Admin';
-
-?>
+<?php require_once 'includes/logic_hr_personnel_management.php'; ?>
 
 <!DOCTYPE html>
 <html lang="vi">
 
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý Nhân sự (HR Admin)</title>
+    <title>HR Admin - Quản lý Nhân sự</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --hr-color: #ffc107;
-            /* Màu vàng cam cho HR */
-        }
-
-        body {
-            background-color: #f4f6f9;
-        }
-
-        .dashboard-header {
-            background-color: var(--hr-color);
-            color: #343a40;
-            padding: 25px 0;
-            margin-bottom: 30px;
-            border-bottom: 5px solid #e0a800;
-        }
-
-        .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .icon-box {
-            font-size: 3rem;
-            color: var(--hr-color);
-            margin-bottom: 15px;
-        }
-
-        .logout-btn {
-            background: none;
-            border: none;
-            color: white;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-        }
-
-        .logout-btn:hover {
-            opacity: 1;
-        }
-    </style>
+    <link href="css/hr_personnel_management.css" rel="stylesheet">
 </head>
 
 <body>
 
-    <div class="dashboard-header">
+    <div class="dashboard-header animate-fade-in">
         <div class="container d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="mb-0 fw-bold"><i class="fas fa-users-cog me-2"></i> Dashboard Quản lý Nhân sự</h1>
-                <p class="mb-0">Xin chào, **<?= htmlspecialchars($admin_name) ?>** (Vai trò:
-                    <?= htmlspecialchars($admin_role) ?>)</p>
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-white bg-opacity-10 p-2 rounded-circle border border-white border-opacity-25">
+                    <i class="fas fa-users-cog fa-2x text-white"></i>
+                </div>
+                <div>
+                    <h2 class="header-title mb-0">HR Dashboard</h2>
+                    <div class="user-badge mt-1">
+                        <i class="fas fa-user-shield me-1"></i>
+                        Xin chào, <strong><?= htmlspecialchars($admin_name) ?></strong>
+                    </div>
+                </div>
             </div>
-            <a href="logout.php" class="btn btn-dark"><i class="fas fa-sign-out-alt me-2"></i> Đăng xuất</a>
+            <a href="logout.php" class="btn btn-logout px-4 py-2 rounded-pill fw-bold">
+                <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+            </a>
         </div>
     </div>
 
-    <div class="container">
-        <h3 class="mb-4 text-center text-secondary">Chọn chức năng quản lý:</h3>
+    <div class="container pb-5">
+        <div class="row justify-content-center mb-5 animate-fade-in delay-1">
+            <div class="col-md-8 text-center">
+                <h3 class="text-white fw-bold mb-3">Trung tâm Quản trị Nhân sự</h3>
+                <p class="text-light opacity-75 fs-5">Lựa chọn chức năng quản lý bên dưới để bắt đầu</p>
+            </div>
+        </div>
 
-        <div class="row g-4">
+        <div class="row g-4 justify-content-center">
 
-            <div class="col-md-4">
+            <div class="col-lg-4 col-md-6 animate-fade-in delay-1">
                 <a href="create_doctor.php" class="text-decoration-none">
-                    <div class="card text-center h-100 p-4">
-                        <div class="card-body">
-                            <div class="icon-box"><i class="fas fa-user-md"></i></div>
-                            <h5 class="card-title fw-bold">Tạo Tài khoản Bác sĩ</h5>
-                            <p class="card-text text-muted">Thêm nhân viên y tế mới vào hệ thống khám bệnh.</p>
+                    <div class="function-card">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h4 class="card-title">Tạo Bác sĩ Mới</h4>
+                        <p class="card-text">Thêm hồ sơ bác sĩ, chuyên khoa và thông tin đăng nhập vào hệ thống.</p>
+                        <div class="mt-3 text-primary fw-bold small text-uppercase tracking-wider">
+                            Truy cập <i class="fas fa-arrow-right ms-1"></i>
                         </div>
                     </div>
                 </a>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-lg-4 col-md-6 animate-fade-in delay-2">
                 <a href="create_receptionist.php" class="text-decoration-none">
-                    <div class="card text-center h-100 p-4">
-                        <div class="card-body">
-                            <div class="icon-box"><i class="fas fa-user-tie"></i></div>
-                            <h5 class="card-title fw-bold">Tạo Tài khoản Lễ Tân</h5>
-                            <p class="card-text text-muted">Thêm nhân viên quản lý lịch hẹn và hồ sơ khách hàng.</p>
+                    <div class="function-card">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h4 class="card-title">Tạo Lễ tân Mới</h4>
+                        <p class="card-text">Cấp quyền truy cập cho nhân viên tiếp đón và quản lý lịch hẹn.</p>
+                        <div class="mt-3 text-primary fw-bold small text-uppercase tracking-wider">
+                            Truy cập <i class="fas fa-arrow-right ms-1"></i>
                         </div>
                     </div>
                 </a>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-lg-4 col-md-6 animate-fade-in delay-3">
                 <a href="manage_personnel.php" class="text-decoration-none">
-                    <div class="card text-center h-100 p-4">
-                        <div class="card-body">
-                            <div class="icon-box"><i class="fas fa-clipboard-list"></i></div>
-                            <h5 class="card-title fw-bold">Quản lý Tài khoản</h5>
-                            <p class="card-text text-muted">Xem, sửa, hoặc vô hiệu hóa tài khoản nhân viên hiện có.</p>
+                    <div class="function-card">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-users-gear"></i>
+                        </div>
+                        <h4 class="card-title">Danh sách Nhân sự</h4>
+                        <p class="card-text">Xem toàn bộ nhân viên, chỉnh sửa thông tin hoặc vô hiệu hóa tài khoản.</p>
+                        <div class="mt-3 text-primary fw-bold small text-uppercase tracking-wider">
+                            Truy cập <i class="fas fa-arrow-right ms-1"></i>
                         </div>
                     </div>
                 </a>

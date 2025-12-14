@@ -1,0 +1,46 @@
+body {
+  background-color: #f0f2f5;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-card {
+  max-width: 900px;
+  width: 90%;
+  border-radius: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.register-image-column {
+  background: linear-gradient(135deg, #198754 0%, #0f5132 100%);
+  padding: 40px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.register-form-column {
+  padding: 40px 60px;
+  background-color: white;
+}
+
+.text-success {
+  color: #198754 !important;
+}
+
+.btn-success {
+  background-color: #198754;
+  border-color: #198754;
+  transition: all 0.3s;
+}
+
+.btn-success:hover {
+  background-color: #0f5132;
+  border-color: #0f5132;
+}

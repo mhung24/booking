@@ -1,59 +1,4 @@
-<?php
-require_once 'config/connect.php';
-session_start();
-
-$error_message = '';
-$success_message = '';
-
-if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
-}
-
-// Xử lý Form Đăng Nhập
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $phone_number = trim($_POST['phone_number']); // SỬ DỤNG SĐT LÀM ĐỊNH DANH
-    $password = $_POST['password'];
-
-    if (empty($phone_number) || empty($password)) {
-        $error_message = "Vui lòng nhập Số điện thoại và Mật khẩu.";
-    } else {
-        global $pdo;
-
-        // 1. TÌM KIẾM BỆNH NHÂN THEO SỐ ĐIỆN THOẠI
-        $sql = "SELECT patient_id, full_name, password_hash FROM Patients WHERE phone_number = :phone_number";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([':phone_number' => $phone_number]);
-        $patient = $stmt->fetch();
-
-        if ($patient) {
-            // 2. Kiểm tra Mật khẩu
-            if (password_verify($password, $patient['password_hash'])) {
-
-                // Đăng nhập thành công
-                $_SESSION['user_id'] = $patient['patient_id'];
-                $_SESSION['user_name'] = $patient['full_name'];
-
-                // Chuyển hướng sau khi đăng nhập
-                if (isset($_SESSION['redirect_after_login']) && !empty($_SESSION['redirect_after_login'])) {
-                    $redirect_url = $_SESSION['redirect_after_login'];
-                    unset($_SESSION['redirect_after_login']);
-                    header("Location: " . $redirect_url);
-                    exit();
-                } else {
-                    header("Location: index.php");
-                    exit();
-                }
-
-            } else {
-                $error_message = "Mật khẩu không chính xác.";
-            }
-        } else {
-            $error_message = "Số điện thoại này chưa được đăng ký.";
-        }
-    }
-}
-?>
+<?php require_once 'includes/logic_login.php'; ?>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -64,55 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Đăng Nhập Hệ Thống</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    <style>
-        body {
-            background-color: #f0f2f5;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .login-card {
-            max-width: 900px;
-            width: 90%;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-        }
-
-        .login-image-column {
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-            padding: 40px;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        .login-form-column {
-            padding: 40px 60px;
-            background-color: white;
-        }
-
-        .text-primary {
-            color: #007bff !important;
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-            transition: all 0.3s;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-    </style>
+    <link href="css/login.css" rel="stylesheet">
 </head>
 
 <body>

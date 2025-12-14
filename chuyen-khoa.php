@@ -1,67 +1,4 @@
-<?php
-require_once 'config/connect.php';
-
-function render_stars(float $rating): string
-{
-    $html = '';
-    $full_stars = floor($rating);
-    $has_half = ($rating - $full_stars) >= 0.5;
-    $empty_stars = 5 - ceil($rating);
-
-    for ($i = 0; $i < $full_stars; $i++) {
-        $html .= '<i class="fas fa-star"></i>';
-    }
-    if ($has_half) {
-        $html .= '<i class="fas fa-star-half-alt"></i>';
-    }
-    for ($i = 0; $i < $empty_stars; $i++) {
-        $html .= '<i class="far fa-star"></i>';
-    }
-    return $html;
-}
-
-$selected_department = $_GET['dept'] ?? null;
-$doctors_by_department = [];
-$page_title = "Tất Cả Chuyên Khoa";
-$default_avatar = './img/no_avatar.png';
-
-global $pdo;
-
-$sql_all_departments = "SELECT department_name, icon_class, description FROM Departments ORDER BY department_name ASC";
-$stmt_all_departments = $pdo->prepare($sql_all_departments);
-$stmt_all_departments->execute();
-$all_departments = $stmt_all_departments->fetchAll();
-
-if ($selected_department) {
-    $page_title = "Bác Sĩ Chuyên Khoa " . $selected_department;
-    $sql_doctors = "
-        SELECT 
-            D.doctor_id,
-            D.full_name, 
-            D.profile_picture, 
-            D.biography,
-            T.department_name
-        FROM Doctors D
-        JOIN Departments T ON D.department_id = T.department_id
-        WHERE T.department_name = :dept_name AND D.status = 'ACTIVE'
-        ORDER BY D.full_name ASC
-    ";
-    $stmt_doctors = $pdo->prepare($sql_doctors);
-    $stmt_doctors->execute([':dept_name' => $selected_department]);
-    $doctors_by_department = $stmt_doctors->fetchAll();
-
-    foreach ($doctors_by_department as $key => $doctor) {
-        $image_path = $doctor['profile_picture'];
-        if (empty($image_path)) {
-            $image_path = $default_avatar;
-        }
-        $doctors_by_department[$key]['image'] = $image_path;
-        $doctors_by_department[$key]['rating'] = round(rand(40, 50) / 10, 1);
-        // Lấy đoạn mô tả ngắn cho card
-        $doctors_by_department[$key]['short_bio'] = substr($doctor['biography'], 0, 100) . '...';
-    }
-}
-?>
+<?php require_once 'includes/logic_chuyen_khoa.php'; ?>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -72,52 +9,7 @@ if ($selected_department) {
     <title><?php echo $page_title; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    <style>
-        .page-header-banner {
-            background-color: #e6f7ff;
-            padding: 40px 0;
-            margin-bottom: 30px;
-            border-bottom: 5px solid #007bff;
-        }
-
-        .dept-card,
-        .doctor-card {
-            border-radius: 12px;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: 1px solid #e0e0e0;
-            background-color: #ffffff;
-        }
-
-        .dept-card:hover,
-        .doctor-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .icon-wrapper {
-            width: 80px;
-            height: 80px;
-            line-height: 80px;
-            margin: 0 auto 15px;
-            border-radius: 50%;
-            background-color: #f0f8ff;
-        }
-
-        .icon-wrapper .fas {
-            font-size: 36px;
-        }
-
-        .doctor-avatar {
-            width: 120px;
-            height: 120px;
-            object-fit: cover;
-        }
-
-        .text-primary {
-            color: #007bff !important;
-        }
-    </style>
+    <link href="css/chuyen_khoa.css" rel="stylesheet">
 </head>
 
 <body>
@@ -154,12 +46,14 @@ if ($selected_department) {
                                                 <a href="chi-tiet-bac-si.php?id=<?php echo $doctor['doctor_id']; ?>"
                                                     class="text-decoration-none text-dark">
                                                     <h5 class="card-title fw-bold text-primary">
-                                                        <?php echo htmlspecialchars($doctor['full_name']); ?></h5>
+                                                        <?php echo htmlspecialchars($doctor['full_name']); ?>
+                                                    </h5>
                                                 </a>
                                                 <p class="card-text text-secondary mb-1">Chuyên khoa:
                                                     **<?php echo htmlspecialchars($doctor['department_name']); ?>**</p>
                                                 <p class="card-text small text-muted fst-italic mt-2">
-                                                    <?php echo htmlspecialchars($doctor['short_bio']); ?></p>
+                                                    <?php echo htmlspecialchars($doctor['short_bio']); ?>
+                                                </p>
                                             </div>
                                         </div>
                                         <div
@@ -207,14 +101,15 @@ if ($selected_department) {
                                         <h5 class="card-title fw-bold"><?php echo htmlspecialchars($dept['department_name']); ?>
                                         </h5>
                                         <p class="card-text small text-muted mb-3">
-                                            <?php echo htmlspecialchars(substr($dept['description'], 0, 70)); ?>...</p>
+                                            <?php echo htmlspecialchars(substr($dept['description'], 0, 70)); ?>...
+                                        </p>
 
                                         <a href="chuyen-khoa.php?dept=<?php echo urlencode($dept['department_name']); ?>"
                                             class="btn btn-sm btn-primary mt-2">Xem Bác Sĩ</a>
                                     </div>
                                 </div>
                             </div>
-                        <?php
+                            <?php
                         endforeach;
                     else:
                         echo '<p class="alert alert-danger">Không tìm thấy bất kỳ chuyên khoa nào trong hệ thống.</p>';

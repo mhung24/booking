@@ -1,53 +1,4 @@
-<?php
-require_once 'config/connect.php';
-session_start();
-
-$error_message = '';
-$success_message = '';
-
-// Kiểm tra nếu Bác sĩ đã đăng nhập, chuyển hướng về trang quản lý của họ
-if (isset($_SESSION['doctor_id']) && !empty($_SESSION['doctor_id'])) {
-    header("Location: doctor-dashboard.php");
-    exit();
-}
-
-// Xử lý Form Đăng Nhập Bác Sĩ
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $license_number = trim($_POST['license_number']); // Sử dụng Mã số hành nghề làm Tên đăng nhập
-    $password = $_POST['password'];
-
-    if (empty($license_number) || empty($password)) {
-        $error_message = "Vui lòng nhập Mã số hành nghề và Mật khẩu.";
-    } else {
-        global $pdo;
-
-        // 1. Tìm kiếm Bác sĩ theo Mã số hành nghề
-        $sql = "SELECT doctor_id, full_name, password_hash FROM Doctors WHERE license_number = :license_number";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([':license_number' => $license_number]);
-        $doctor = $stmt->fetch();
-
-        if ($doctor) {
-            // 2. Kiểm tra Mật khẩu (Giả định mật khẩu đã được hash và lưu trong Doctors.password_hash)
-            if (password_verify($password, $doctor['password_hash'])) {
-
-                // Đăng nhập thành công
-                $_SESSION['doctor_id'] = $doctor['doctor_id'];
-                $_SESSION['doctor_name'] = $doctor['full_name'];
-
-                // Chuyển hướng đến trang quản lý lịch hẹn của Bác sĩ
-                header("Location: doctor-dashboard.php");
-                exit();
-
-            } else {
-                $error_message = "Mật khẩu không chính xác.";
-            }
-        } else {
-            $error_message = "Mã số hành nghề không đúng hoặc chưa được đăng ký.";
-        }
-    }
-}
-?>
+<?php require_once 'includes/logic_doctor_login.php'; ?>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -58,57 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Đăng Nhập Bác Sĩ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    <style>
-        body {
-            background-color: #f0f2f5;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .login-card {
-            max-width: 900px;
-            width: 90%;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-        }
-
-        .login-image-column {
-            /* Sử dụng màu tím hoặc đỏ để phân biệt với Bệnh nhân */
-            background: linear-gradient(135deg, #6f42c1 0%, #4c2980 100%);
-            padding: 40px;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        .login-form-column {
-            padding: 40px 60px;
-            background-color: white;
-        }
-
-        .text-doctor {
-            /* Màu tím cho Bác sĩ */
-            color: #6f42c1 !important;
-        }
-
-        .btn-doctor {
-            background-color: #6f42c1;
-            border-color: #6f42c1;
-            transition: all 0.3s;
-        }
-
-        .btn-doctor:hover {
-            background-color: #4c2980;
-            border-color: #4c2980;
-        }
-    </style>
+    <link href="css/doctor_login.css" rel="stylesheet">
 </head>
 
 <body>

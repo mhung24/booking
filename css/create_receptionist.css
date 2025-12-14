@@ -1,0 +1,24 @@
+body {
+  background-color: #f4f6f9;
+}
+
+.form-container {
+  max-width: 550px;
+  margin: 50px auto;
+  padding: 30px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-create {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.btn-create:hover {
+  background-color: #218838;
+  border-color: #218838;
+  color: white;
+}

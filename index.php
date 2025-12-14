@@ -1,21 +1,4 @@
-<?php
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-require_once 'config/connect.php';
-
-$page_title = "Trang Chủ - Hệ Thống Đặt Lịch Khám Bệnh";
-$is_logged_in = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
-
-$target_page = "dat-lich.php";
-
-if (!$is_logged_in) {
-    $redirect_url = urlencode($target_page);
-    $final_link = "login.php?redirect=" . $redirect_url;
-} else {
-    $final_link = $target_page;
-}
-?>
+<?php require_once 'includes/logic_index.php'; ?>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -26,62 +9,7 @@ if (!$is_logged_in) {
     <title><?php echo $page_title; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    <style>
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-            background-color: #f7f9fc;
-        }
-
-        main {
-            flex-grow: 1;
-        }
-
-        .hero-section {
-            background-color: #e6f7ff;
-            color: #333;
-            padding: 120px 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .search-container .form-control {
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .card {
-            border-radius: 12px;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .text-primary {
-            color: #007bff !important;
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-            font-weight: 600;
-        }
-
-        .btn-outline-primary {
-            color: #007bff;
-            border-color: #007bff;
-        }
-    </style>
+    <link href="css/index.css" rel="stylesheet">
 </head>
 
 <body>
@@ -134,14 +62,9 @@ if (!$is_logged_in) {
             </div>
         </section>
 
-        <?php
-        include 'includes/department_section.php';
-        ?>
+        <?php include 'includes/department_section.php'; ?>
 
-        <?php
-        include 'includes/doctor_section.php';
-        ?>
-
+        <?php include 'includes/doctor_section.php'; ?>
 
         <?php include 'includes/customer-reviews.php'; ?>
     </main>

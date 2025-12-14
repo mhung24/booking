@@ -1,0 +1,40 @@
+.page-header-banner {
+  background-color: #e6f7ff;
+  padding: 40px 0;
+  margin-bottom: 30px;
+  border-bottom: 5px solid #007bff;
+}
+
+.doctor-card {
+  border-radius: 12px;
+  transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  height: 100%;
+}
+
+.doctor-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.doctor-avatar {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.text-primary {
+  color: #007bff !important;
+}
+
+.booking-btn-cta {
+  border-radius: 20px;
+  transition: all 0.3s;
+}
+
+.booking-btn-cta:hover {
+  transform: scale(1.05);
+}

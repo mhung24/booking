@@ -1,0 +1,43 @@
+.page-header-banner {
+  background-color: #e6f7ff;
+  padding: 40px 0;
+  margin-bottom: 30px;
+  border-bottom: 5px solid #007bff;
+}
+
+.dept-card,
+.doctor-card {
+  border-radius: 12px;
+  transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+}
+
+.dept-card:hover,
+.doctor-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.icon-wrapper {
+  width: 80px;
+  height: 80px;
+  line-height: 80px;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  background-color: #f0f8ff;
+}
+
+.icon-wrapper .fas {
+  font-size: 36px;
+}
+
+.doctor-avatar {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+}
+
+.text-primary {
+  color: #007bff !important;
+}

@@ -1,70 +1,4 @@
-<?php
-require_once 'config/connect.php';
-session_start();
-
-$error_message = '';
-$success_message = '';
-
-if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $full_name = trim($_POST['full_name']);
-    $phone_number = trim($_POST['phone_number']); // SỬ DỤNG SĐT LÀM ĐỊNH DANH
-    $password = $_POST['password'];
-    $confirm_password = $_POST['confirm_password'];
-
-    // 1. Kiểm tra dữ liệu bắt buộc
-    if (empty($full_name) || empty($phone_number) || empty($password) || empty($confirm_password)) {
-        $error_message = "Vui lòng điền đầy đủ Họ tên, Số điện thoại và Mật khẩu.";
-    }
-    // 2. Kiểm tra khớp mật khẩu
-    else if ($password !== $confirm_password) {
-        $error_message = "Xác nhận mật khẩu không khớp.";
-    }
-    // 3. Kiểm tra độ dài mật khẩu tối thiểu
-    else if (strlen($password) < 6) {
-        $error_message = "Mật khẩu phải chứa ít nhất 6 ký tự.";
-    } else {
-        global $pdo;
-
-        // 4. KIỂM TRA SỐ ĐIỆN THOẠI ĐÃ TỒN TẠI CHƯA
-        $sql_check = "SELECT patient_id FROM Patients WHERE phone_number = :phone_number";
-        $stmt_check = $pdo->prepare($sql_check);
-        $stmt_check->execute([':phone_number' => $phone_number]);
-
-        if ($stmt_check->fetch()) {
-            $error_message = "Số điện thoại này đã được sử dụng. Vui lòng chọn số khác hoặc Đăng nhập.";
-        } else {
-            // 5. Mã hóa mật khẩu
-            $password_hash = password_hash($password, PASSWORD_DEFAULT);
-
-            // 6. Chèn dữ liệu vào Database
-            $sql_insert = "
-                INSERT INTO Patients (full_name, phone_number, password_hash, email) -- Giữ lại email có thể là NULL
-                VALUES (:full_name, :phone_number, :password_hash, :email)
-            ";
-
-            try {
-                $stmt_insert = $pdo->prepare($sql_insert);
-                $stmt_insert->execute([
-                    ':full_name' => $full_name,
-                    ':phone_number' => $phone_number,
-                    ':password_hash' => $password_hash,
-                    ':email' => $_POST['email'] ?? null // Đảm bảo email vẫn được gửi nếu có, hoặc là NULL
-                ]);
-
-                $success_message = "Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.";
-
-            } catch (PDOException $e) {
-                $error_message = "Lỗi hệ thống khi đăng ký: " . $e->getMessage();
-            }
-        }
-    }
-}
-?>
+<?php require_once 'includes/logic_register.php'; ?>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -75,55 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Đăng Ký Tài Khoản</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    <style>
-        body {
-            background-color: #f0f2f5;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .register-card {
-            max-width: 900px;
-            width: 90%;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-        }
-
-        .register-image-column {
-            background: linear-gradient(135deg, #198754 0%, #0f5132 100%);
-            padding: 40px;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        .register-form-column {
-            padding: 40px 60px;
-            background-color: white;
-        }
-
-        .text-success {
-            color: #198754 !important;
-        }
-
-        .btn-success {
-            background-color: #198754;
-            border-color: #198754;
-            transition: all 0.3s;
-        }
-
-        .btn-success:hover {
-            background-color: #0f5132;
-            border-color: #0f5132;
-        }
-    </style>
+    <link href="css/register.css" rel="stylesheet">
 </head>
 
 <body>

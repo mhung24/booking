@@ -1,0 +1,213 @@
+:root {
+  --primary-color: #4361ee;
+  --primary-light: #eef1fe;
+  --secondary-color: #3f37c9;
+  --success-color: #06d6a0;
+  --warning-color: #ffd166;
+  --danger-color: #ef476f;
+  --info-color: #4cc9f0;
+  --text-dark: #2b2d42;
+  --text-grey: #8d99ae;
+  --bg-body: #f8f9fa;
+  --card-radius: 16px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+body {
+  background-color: var(--bg-body);
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: var(--text-dark);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background: #fff;
+  position: fixed;
+  left: 0;
+  top: 0;
+  border-right: 1px solid #f0f0f0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.brand {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-item {
+  padding: 12px 15px;
+  border-radius: 10px;
+  color: var(--text-grey);
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.user-profile {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* MAIN CONTENT */
+.main-content {
+  margin-left: 260px;
+  padding: 30px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* CARDS */
+.modern-card {
+  background: #fff;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-sm);
+  border: none;
+  transition: transform 0.2s;
+  margin-bottom: 20px;
+}
+
+/* STATS CARD */
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+}
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+/* TABLE STYLES */
+.table-custom thead th {
+  background-color: #f8f9fa;
+  color: var(--text-grey);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  border: none;
+  padding: 15px;
+}
+
+.table-custom tbody td {
+  padding: 15px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
+  color: var(--text-dark);
+}
+
+.table-custom tbody tr:hover {
+  background-color: #fcfcfc;
+}
+
+.avatar-initial {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* BADGES */
+.badge-soft {
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+.badge-soft-warning {
+  background: #fff8e1;
+  color: #f59e0b;
+} /* Pending */
+.badge-soft-success {
+  background: #d1fae5;
+  color: #10b981;
+} /* Scheduled/Confirmed */
+.badge-soft-info {
+  background: #dbeafe;
+  color: #3b82f6;
+} /* Waiting */
+.badge-soft-primary {
+  background: #e0e7ff;
+  color: #4338ca;
+} /* Examining */
+.badge-soft-dark {
+  background: #f3f4f6;
+  color: #374151;
+} /* Completed */
+.badge-soft-danger {
+  background: #fee2e2;
+  color: #ef4444;
+} /* Cancelled */
+
+.is-emergency td {
+  background-color: #fff5f5 !important;
+}
+
+/* BUTTONS */
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.btn-icon:hover {
+  transform: translateY(-2px);
+}
+
+.btn-primary-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+.btn-primary-gradient:hover {
+  color: white;
+  box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
+  transform: translateY(-1px);
+}

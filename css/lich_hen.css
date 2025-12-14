@@ -1,0 +1,28 @@
+.appointment-card {
+  border-left: 5px solid #007bff;
+  border-radius: 8px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.appointment-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.status-header {
+  background-color: #e9ecef;
+  padding: 10px 20px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.text-primary-custom {
+  color: #007bff !important;
+}
+
+.btn-cancel {
+  transition: background-color 0.3s;
+}
+
+main {
+  min-height: 516px;
+}
