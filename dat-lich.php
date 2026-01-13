@@ -1,9 +1,7 @@
 <?php
-// ================= DEBUG =================
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-// =========================================
 
 require_once 'includes/logic_booking.php';
 ?>
@@ -37,8 +35,9 @@ require_once 'includes/logic_booking.php';
                 <h3 class="mb-4 fw-bolder text-dark">Hoàn tất đặt lịch</h3>
 
                 <?php if ($error_message): ?>
-                    <div class="alert alert-danger text-center"><i
-                            class="fas fa-exclamation-triangle me-2"></i><?= $error_message ?></div>
+                    <div class="alert alert-danger text-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i><?= $error_message ?>
+                    </div>
                 <?php endif; ?>
 
                 <form method="POST" id="appointment-form">
@@ -56,25 +55,29 @@ require_once 'includes/logic_booking.php';
                     <h4 class="form-group-title mt-5"><i class="far fa-clock me-2"></i> Chọn thời gian</h4>
                     <label class="form-label fw-bold small">Ngày khám (*)</label>
                     <input type="date" name="ngay_kham" class="form-control mb-3"
-                        min="<?= date('Y-m-d', strtotime('+1 day')) ?>" required>
+                        min="<?= date('Y-m-d', strtotime('+1 day')) ?>" value="<?= $_POST['ngay_kham'] ?? '' ?>"
+                        required>
 
                     <label class="form-label fw-bold small">Giờ khám (*)</label>
-                    <input type="hidden" name="gio_kham_slot" id="gio_kham_slot">
+                    <input type="hidden" name="gio_kham_slot" id="gio_kham_slot"
+                        value="<?= $_POST['gio_kham_slot'] ?? '' ?>">
                     <div id="time-slot-error" class="text-danger mb-3 small" style="display:none">Vui lòng chọn khung
                         giờ khám.</div>
 
                     <div class="d-flex flex-wrap mb-4">
                         <?php foreach ($available_time_slots as $slot): ?>
-                            <button type="button" class="time-slot-btn" data-time="<?= $slot ?>"><i
-                                    class="far fa-clock me-1"></i>
-                                <?= $slot ?></button>
+                            <?php $isSelected = (isset($_POST['gio_kham_slot']) && $_POST['gio_kham_slot'] == $slot) ? 'selected' : ''; ?>
+                            <button type="button" class="time-slot-btn <?= $isSelected ?>" data-time="<?= $slot ?>">
+                                <i class="far fa-clock me-1"></i><?= $slot ?>
+                            </button>
                         <?php endforeach; ?>
                     </div>
 
 
                     <h4 class="form-group-title mt-5"><i class="fas fa-notes-medical me-2"></i> Lý do khám</h4>
                     <label class="form-label fw-bold small">Mô tả Triệu chứng/Lý do (*)</label>
-                    <textarea name="ly_do" class="form-control" rows="3" required></textarea>
+                    <textarea name="ly_do" class="form-control" rows="3"
+                        required><?= htmlspecialchars($_POST['ly_do'] ?? '') ?></textarea>
 
                     <button class="btn btn-primary btn-lg w-100 mt-4 fw-bold btn-submit" name="submit_appointment"
                         id="submit-btn">
@@ -92,9 +95,24 @@ require_once 'includes/logic_booking.php';
             const slot = document.getElementById('gio_kham_slot');
             const btns = document.querySelectorAll('.time-slot-btn');
             const err = document.getElementById('time-slot-error');
-            btns.forEach(b => b.onclick = () => { btns.forEach(x => x.classList.remove('selected')); b.classList.add('selected'); slot.value = b.dataset.time; err.style.display = 'none'; });
-            document.getElementById('appointment-form').onsubmit = e => { if (!slot.value) { e.preventDefault(); err.style.display = 'block'; } };
-            <?php if ($success_message): ?>new bootstrap.Modal(document.getElementById('successModal')).show(); <?php endif; ?>
+
+            btns.forEach(b => b.onclick = () => {
+                btns.forEach(x => x.classList.remove('selected'));
+                b.classList.add('selected');
+                slot.value = b.dataset.time;
+                err.style.display = 'none';
+            });
+
+            document.getElementById('appointment-form').onsubmit = e => {
+                if (!slot.value) {
+                    e.preventDefault();
+                    err.style.display = 'block';
+                }
+            };
+
+            <?php if ($success_message === 'success'): ?>
+                new bootstrap.Modal(document.getElementById('successModal')).show();
+            <?php endif; ?>
         });
     </script>
 
@@ -102,8 +120,8 @@ require_once 'includes/logic_booking.php';
     <div class="modal fade" id="successModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center p-4">
-                <i class="fas fa-check-circle modal-success-icon"></i>
-                <h4 class="text-success fw-bold">Đặt lịch thành công</h4>
+                <i class="fas fa-check-circle modal-success-icon" style="font-size: 3rem; color: #28a745;"></i>
+                <h4 class="text-success fw-bold mt-3">Đặt lịch thành công</h4>
                 <p>Yêu cầu của bạn đã được gửi.</p>
                 <a href="lich-hen.php" class="btn btn-success mt-3">Xem lịch hẹn</a>
             </div>

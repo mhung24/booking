@@ -27,6 +27,7 @@ $stmt = $pdo->prepare("SELECT D.full_name AS doctor_name, D.profile_picture, T.d
                          WHERE D.doctor_id = :id");
 $stmt->execute(['id' => $doctor_id]);
 $doctor = $stmt->fetch();
+
 if (!$doctor) {
     header('Location: tim-bac-si.php');
     exit;
@@ -63,6 +64,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_appointment'])
 
     if (!DateTime::createFromFormat('Y-m-d', $appointment_date)) {
         $error_message = 'Ngày khám không hợp lệ.';
+    }
+
+    if (!$error_message) {
+        $hour = (int) substr($appointment_time, 0, 2);
+        $slot_needed = ($hour < 12) ? 'Sáng' : 'Chiều';
+
+        $stmt_work = $pdo->prepare("SELECT COUNT(*) FROM doctor_schedules 
+                                    WHERE doctor_id = :d 
+                                    AND work_date = :ad 
+                                    AND slot_name = :s");
+        $stmt_work->execute([
+            'd' => $doctor_id,
+            'ad' => $appointment_date,
+            's' => $slot_needed
+        ]);
+
+        if ($stmt_work->fetchColumn() == 0) {
+            $error_message = 'Bác sĩ không có lịch làm việc vào ca ' . $slot_needed . ' ngày này. Vui lòng chọn ngày khác!';
+        }
+    }
+
+    if (!$error_message) {
+        $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM Appointments 
+                                     WHERE doctor_id = :d 
+                                     AND appointment_date = :ad 
+                                     AND appointment_time = :at 
+                                     AND status != 'Cancelled'");
+        $stmt_check->execute([
+            'd' => $doctor_id,
+            'ad' => $appointment_date,
+            'at' => $appointment_time
+        ]);
+
+        $exists = $stmt_check->fetchColumn();
+
+        if ($exists > 0) {
+            $error_message = 'Rất tiếc, khung giờ này bác sĩ đã có lịch hẹn khác. Vui lòng chọn giờ hoặc ngày khác!';
+        }
     }
 
     if (!$error_message) {

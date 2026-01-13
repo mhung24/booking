@@ -1,21 +1,22 @@
 <?php
-// FILE: includes/logic_doctor_dashboard.php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 require_once 'config/connect.php';
 
 if (session_status() === PHP_SESSION_NONE)
     session_start();
-$current_doctor_id = $_SESSION['doctor_id'] ?? 1;
 
+$current_doctor_id = $_SESSION['doctor_id'] ?? 1;
 global $pdo;
 
-// --- 1. XỬ LÝ: HOÀN THÀNH KHÁM & LƯU ĐƠN THUỐC ---
+$stmt_name = $pdo->prepare("SELECT full_name FROM Doctors WHERE doctor_id = :did");
+$stmt_name->execute(['did' => $current_doctor_id]);
+$doctor_name_display = $stmt_name->fetchColumn();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'complete_exam') {
     $app_id = (int) $_POST['appointment_id'];
     $diagnosis = $_POST['diagnosis'] ?? '';
 
-    // Mảng thuốc (Nếu có kê đơn)
     $med_ids = $_POST['med_id'] ?? [];
     $quantities = $_POST['quantity'] ?? [];
     $dosages = $_POST['dosage'] ?? [];
@@ -23,11 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     try {
         $pdo->beginTransaction();
 
-        // 1.1 Cập nhật Lịch hẹn: Status -> Completed + Lưu Chẩn đoán
         $stmt = $pdo->prepare("UPDATE Appointments SET status = 'Completed', diagnosis = :diag WHERE appointment_id = :id");
         $stmt->execute(['diag' => $diagnosis, 'id' => $app_id]);
 
-        // 1.2 Lưu Đơn thuốc (Nếu có thuốc)
         if (!empty($med_ids)) {
             $sql_pres = "INSERT INTO Prescription_Details (appointment_id, medicine_id, quantity, dosage) VALUES (:aid, :mid, :qty, :dose)";
             $stmt_pres = $pdo->prepare($sql_pres);
@@ -54,17 +53,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// --- 2. XỬ LÝ CÁC ACTION KHÁC (Chuyển BS, Gọi khám) ---
-// (Giữ nguyên logic cũ của phần Chuyển bác sĩ và Gọi khám ở đây)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'transfer') {
-    // ... (Code chuyển bác sĩ giữ nguyên) ...
-    // Copy lại đoạn logic transfer từ bài trước vào đây
     $app_id = (int) $_POST['appointment_id'];
     $target_doctor_id = (int) $_POST['target_doctor_id'];
     $stmt = $pdo->prepare("UPDATE Appointments SET doctor_id = :did, status = 'Waiting', queued_at = NOW() WHERE appointment_id = :aid");
     $stmt->execute(['did' => $target_doctor_id, 'aid' => $app_id]);
     header("Location: doctor_dashboard.php?msg=transfer_success");
     exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_schedule') {
+    $work_date = $_POST['work_date'] ?? '';
+    $slots = $_POST['slots'] ?? [];
+
+    if (!empty($work_date) && !empty($slots)) {
+        try {
+            foreach ($slots as $slot_name) {
+                $sql_check = "SELECT COUNT(*) FROM doctor_schedules WHERE doctor_id = :d_id AND work_date = :w_date AND slot_name = :s_name";
+                $stmt_check = $pdo->prepare($sql_check);
+                $stmt_check->execute([
+                    ':d_id' => $current_doctor_id,
+                    ':w_date' => $work_date,
+                    ':s_name' => $slot_name
+                ]);
+
+                if ($stmt_check->fetchColumn() == 0) {
+                    $sql_insert = "INSERT INTO doctor_schedules (doctor_id, work_date, slot_name) VALUES (:d_id, :w_date, :s_name)";
+                    $stmt_insert = $pdo->prepare($sql_insert);
+                    $stmt_insert->execute([
+                        ':d_id' => $current_doctor_id,
+                        ':w_date' => $work_date,
+                        ':s_name' => $slot_name
+                    ]);
+                }
+            }
+            header("Location: doctor_dashboard.php?msg=schedule_success");
+            exit;
+        } catch (Exception $e) {
+            die("Lỗi lưu lịch làm việc: " . $e->getMessage());
+        }
+    }
 }
 
 if (isset($_GET['action']) && $_GET['action'] == 'call' && isset($_GET['id'])) {
@@ -74,9 +102,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'call' && isset($_GET['id'])) {
     exit;
 }
 
-// --- 3. LẤY DỮ LIỆU HIỂN THỊ ---
 try {
-    // 3.1 Bệnh nhân ĐANG KHÁM
     $sql_examining = "
         SELECT A.*, P.full_name, P.phone_number, P.bhyt_code, P.address, P.date_of_birth, P.gender, S.service_name 
         FROM Appointments A
@@ -88,7 +114,6 @@ try {
     $stmt->execute(['did' => $current_doctor_id]);
     $examining_patient = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // 3.2 Danh sách CHỜ
     $sql_waiting = "
         SELECT A.*, P.full_name, P.phone_number, S.service_name 
         FROM Appointments A
@@ -101,10 +126,8 @@ try {
     $stmt->execute(['did' => $current_doctor_id]);
     $waiting_patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3.3 Danh sách THUỐC (Để đổ vào Select Box)
     $medicines = $pdo->query("SELECT * FROM Medicines ORDER BY medicine_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3.4 Danh sách Bác sĩ khác
     $stmt_docs = $pdo->prepare("SELECT D.doctor_id, D.full_name, T.department_name FROM Doctors D JOIN Departments T ON D.department_id = T.department_id WHERE D.doctor_id != :did");
     $stmt_docs->execute(['did' => $current_doctor_id]);
     $other_doctors = $stmt_docs->fetchAll(PDO::FETCH_ASSOC);
@@ -112,11 +135,10 @@ try {
 } catch (Exception $e) {
     die("Lỗi kết nối: " . $e->getMessage());
 }
-// --- 2.5 API AJAX: LẤY LỊCH SỬ KHÁM ---
+
 if (isset($_GET['action']) && $_GET['action'] === 'get_history' && isset($_GET['patient_id'])) {
     $pid = (int) $_GET['patient_id'];
 
-    // 1. Lấy danh sách các lần khám đã HOÀN THÀNH
     $sql = "
         SELECT A.*, D.full_name as doctor_name, S.service_name
         FROM Appointments A
@@ -130,13 +152,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_history' && isset($_GET['
     $stmt->execute(['pid' => $pid]);
     $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // 2. Xuất HTML trả về cho Modal
     if (empty($history)) {
         echo '<div class="text-center text-muted py-5"><i class="fas fa-file-medical-alt fa-3x mb-3 opacity-50"></i><br>Bệnh nhân chưa có lịch sử khám bệnh.</div>';
     } else {
         echo '<div class="timeline">';
         foreach ($history as $h) {
-            // Lấy đơn thuốc của lần khám đó
             $stmt_med = $pdo->prepare("
                 SELECT pd.*, m.medicine_name, m.unit 
                 FROM Prescription_Details pd
@@ -180,6 +200,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_history' && isset($_GET['
         }
         echo '</div>';
     }
-    exit; // Dừng code để trả về HTML
+    exit;
 }
 ?>

@@ -96,8 +96,7 @@ $history_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </a>
             <a href="doctor_history.php" class="nav-item active"> <i class="fas fa-history"></i> Lịch sử ca khám
             </a>
-            <a href="#" class="nav-item"><i class="fas fa-pills"></i> Kho thuốc</a>
-            <a href="#" class="nav-item"><i class="fas fa-chart-pie"></i> Báo cáo</a>
+
         </nav>
         <div class="doctor-profile">
             <img src="https://ui-avatars.com/api/?name=BS&background=0d6efd&color=fff" class="rounded-circle"
