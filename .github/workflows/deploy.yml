@@ -1,0 +1,15 @@
+name: CI/CD Deploy
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Sync files to htdocs
+        run: |
+          xcopy /E /Y /I * C:\xampp\htdocs\booking\
