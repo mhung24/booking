@@ -10,6 +10,24 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="css/doctor-list.css">
+    <style>
+        .schedule-badge {
+            font-size: 0.75rem;
+            padding: 5px 8px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .schedule-badge:hover {
+            background-color: #e9ecef;
+            border-color: #ced4da;
+        }
+    </style>
 </head>
 
 <body>
@@ -60,12 +78,27 @@
             <div class="row">
                 <?php if (!empty($doctors_list)): ?>
                     <?php foreach ($doctors_list as $doctor): ?>
+                        <?php
+                        global $pdo;
+                        $stmt_sch = $pdo->prepare("
+                            SELECT DISTINCT work_date 
+                            FROM doctor_schedules 
+                            WHERE doctor_id = :did AND work_date >= CURDATE() 
+                            ORDER BY work_date ASC 
+                            LIMIT 3
+                        ");
+                        $stmt_sch->execute(['did' => $doctor['doctor_id']]);
+                        $schedules = $stmt_sch->fetchAll(PDO::FETCH_COLUMN);
+                        ?>
+
                         <div class="col-lg-6 mb-4">
-                            <div class="card doctor-card shadow-sm p-3">
-                                <div class="row g-0 align-items-center">
-                                    <div class="col-md-3 text-center">
+                            <div class="card doctor-card shadow-sm p-3 h-100">
+                                <div class="row g-0">
+                                    <div
+                                        class="col-md-3 text-center d-flex flex-column align-items-center justify-content-start pt-2">
                                         <img src="<?= htmlspecialchars($doctor['image']); ?>"
-                                            class="rounded-circle doctor-avatar mb-3 mb-md-0">
+                                            class="rounded-circle doctor-avatar mb-3 mb-md-0 shadow-sm"
+                                            style="width: 100px; height: 100px; object-fit: cover;">
                                     </div>
                                     <div class="col-md-9">
                                         <div class="card-body py-0 ps-md-4">
@@ -77,27 +110,49 @@
                                                             <?= htmlspecialchars($doctor['full_name']); ?>
                                                         </h5>
                                                     </a>
-                                                    <span
-                                                        class="badge bg-light text-secondary border mb-2"><?= htmlspecialchars($doctor['department_name']); ?></span>
+                                                    <span class="badge bg-light text-secondary border mb-2">
+                                                        <?= htmlspecialchars($doctor['department_name']); ?>
+                                                    </span>
                                                 </div>
                                                 <div class="text-end">
                                                     <div class="text-warning small">
                                                         <?= render_stars((float) $doctor['rating']); ?>
                                                     </div>
-                                                    <small class="text-muted"
-                                                        style="font-size: 0.75rem;">(<?= $doctor['total_reviews']; ?> đánh
-                                                        giá)</small>
+                                                    <small class="text-muted" style="font-size: 0.75rem;">
+                                                        (<?= $doctor['total_reviews']; ?> đánh giá)
+                                                    </small>
                                                 </div>
                                             </div>
-                                            <p class="card-text small text-muted fst-italic mt-2 mb-3 border-bottom pb-2">
+
+                                            <div class="mt-2 mb-2">
+                                                <small class="fw-bold text-muted d-block mb-1"><i
+                                                        class="far fa-calendar-alt me-1"></i> Lịch khám sắp tới:</small>
+                                                <?php if (!empty($schedules)): ?>
+                                                    <div>
+                                                        <?php foreach ($schedules as $date): ?>
+                                                            <span class="schedule-badge">
+                                                                <?= date('d/m', strtotime($date)); ?>
+                                                            </span>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <span
+                                                        class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle fw-normal">Chưa
+                                                        có lịch</span>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <p class="card-text small text-muted fst-italic mt-2 mb-3 border-bottom pb-2 text-truncate"
+                                                style="max-width: 100%;">
                                                 <?= htmlspecialchars($doctor['short_bio']); ?>
                                             </p>
+
                                             <div class="d-flex gap-2">
                                                 <a href="chi-tiet-bac-si.php?id=<?= $doctor['doctor_id']; ?>"
                                                     class="btn btn-sm btn-outline-secondary flex-grow-1">Xem Hồ Sơ</a>
                                                 <?php
                                                 $link = $is_logged_in ? "dat-lich.php?id=" . $doctor['doctor_id'] : "login.php?redirect=" . urlencode("dat-lich.php?id=" . $doctor['doctor_id']);
-                                                $btn_cls = $is_logged_in ? "btn-success" : "btn-primary";
+                                                $btn_cls = ($is_logged_in ? "btn-success" : "btn-primary") . (empty($schedules) ? " disabled" : "");
                                                 $btn_txt = $is_logged_in ? "Đặt Lịch" : "Đăng Nhập Đặt Lịch";
                                                 ?>
                                                 <a href="<?= $link; ?>"

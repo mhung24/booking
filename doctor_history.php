@@ -1,5 +1,4 @@
 <?php
-// FILE: doctor_history.php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 require_once 'config/connect.php';
@@ -8,16 +7,13 @@ if (session_status() === PHP_SESSION_NONE)
     session_start();
 $current_doctor_id = $_SESSION['doctor_id'] ?? 1;
 
-// 1. XỬ LÝ AJAX: XEM CHI TIẾT ĐƠN THUỐC (Khi bấm nút "Xem")
 if (isset($_GET['action']) && $_GET['action'] === 'get_details' && isset($_GET['id'])) {
     $app_id = (int) $_GET['id'];
 
-    // Lấy thông tin khám
     $stmt = $pdo->prepare("SELECT diagnosis FROM Appointments WHERE appointment_id = :id");
     $stmt->execute(['id' => $app_id]);
     $app = $stmt->fetch();
 
-    // Lấy thuốc
     $stmt_med = $pdo->prepare("
         SELECT pd.*, m.medicine_name, m.unit 
         FROM Prescription_Details pd
@@ -28,7 +24,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_details' && isset($_GET['
     $meds = $stmt_med->fetchAll(PDO::FETCH_ASSOC);
 
     echo '<div class="p-2">';
-    echo '<div class="mb-3"><strong class="text-primary">Kết luận/Chẩn đoán:</strong><div class="bg-light p-3 rounded mt-1 border">' . nl2br(htmlspecialchars($app['diagnosis'])) . '</div></div>';
+    echo '<div class="mb-3"><strong class="text-primary">Kết luận/Chẩn đoán:</strong><div class="bg-light p-3 rounded mt-1 border">' . nl2br(htmlspecialchars($app['diagnosis'] ?? '')) . '</div></div>';
 
     if (!empty($meds)) {
         echo '<strong class="text-success">Đơn thuốc đã kê:</strong>';
@@ -49,7 +45,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_details' && isset($_GET['
     exit;
 }
 
-// 2. LẤY DANH SÁCH LỊCH SỬ (Tìm kiếm & Phân trang)
 $keyword = $_GET['search'] ?? '';
 $sql = "
     SELECT A.*, P.full_name, P.phone_number, P.bhyt_code, S.service_name
@@ -67,7 +62,7 @@ if ($keyword) {
     $params['kw'] = "%$keyword%";
 }
 
-$sql .= " ORDER BY A.appointment_date DESC, A.appointment_time DESC LIMIT 50"; // Lấy 50 ca gần nhất
+$sql .= " ORDER BY A.appointment_date DESC, A.appointment_time DESC LIMIT 50";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -80,7 +75,7 @@ $history_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <title>Lịch sử khám bệnh - Bác sĩ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <link href="css/doctor_dashboard.css" rel="stylesheet">
@@ -96,7 +91,6 @@ $history_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </a>
             <a href="doctor_history.php" class="nav-item active"> <i class="fas fa-history"></i> Lịch sử ca khám
             </a>
-
         </nav>
         <div class="doctor-profile">
             <img src="https://ui-avatars.com/api/?name=BS&background=0d6efd&color=fff" class="rounded-circle"
@@ -160,7 +154,7 @@ $history_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         </td>
                                         <td>
                                             <span class="d-inline-block text-truncate" style="max-width: 200px;">
-                                                <?= htmlspecialchars($h['diagnosis']) ?>
+                                                <?= htmlspecialchars($h['diagnosis'] ?? '') ?>
                                             </span>
                                         </td>
                                         <td class="text-end pe-4">
@@ -184,7 +178,8 @@ $history_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">Chi tiết ca khám: <span id="modal-patient"
-                            class="text-primary"></span></h5>
+                            class="text-primary"></span>
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="modal-body-content">
